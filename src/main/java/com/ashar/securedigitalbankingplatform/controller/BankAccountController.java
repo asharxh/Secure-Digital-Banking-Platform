@@ -21,4 +21,10 @@ public class BankAccountController {
         User user = userService.getUserById(userId); // we will create this method
         return bankAccountService.createAccount(user, accountNumber);
     }
+
+    @PostMapping("/deposit")
+    public BankAccount deposit (@RequestParam String accountNumber,
+                                @RequestParam Double amount){
+        return bankAccountService.deposit(accountNumber,amount);
+    }
 }

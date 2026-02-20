@@ -19,4 +19,15 @@ public class BankAccountService {
         account.setBalance(0.0);
         return bankAccountRepository.save(account);
     }
+
+    public BankAccount deposit(String accountNumber, Double amount) {
+        BankAccount account = bankAccountRepository
+                .findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+        if (amount <= 0) {
+            throw new RuntimeException("Deposit amount must be positive");
+        }
+        account.setBalance(account.getBalance() + amount);
+        return bankAccountRepository.save(account);
+    }
 }
