@@ -3,6 +3,7 @@ package com.ashar.securedigitalbankingplatform.service;
 import com.ashar.securedigitalbankingplatform.entity.BankAccount;
 import com.ashar.securedigitalbankingplatform.entity.User;
 import com.ashar.securedigitalbankingplatform.repository.BankAccountRepository;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -43,5 +44,32 @@ public class BankAccountService {
         }
         account.setBalance(account.getBalance() - amount);
         return bankAccountRepository.save(account);
+    }
+
+    @Transactional
+    public void transfer(String fromAccount,
+                         String toAccount,
+                         Double amount) {
+        if (fromAccount.equals(toAccount)) {
+            throw new RuntimeException("cannot transfer to Same account");
+        }
+        BankAccount sender = bankAccountRepository
+                .findByAccountNumber(fromAccount)
+                .orElseThrow(() -> new RuntimeException("Sender not found"));
+        BankAccount receiver = bankAccountRepository
+                .findByAccountNumber(toAccount)
+                .orElseThrow(() -> new RuntimeException("Receiver not found"));
+
+        if (amount <= 0) {
+            throw new RuntimeException("enter positive amount");
+        }
+        if (sender.getBalance() < amount) {
+            throw new RuntimeException("Insufficient balance");
+        }
+
+        sender.setBalance(sender.getBalance() - amount);
+        receiver.setBalance(receiver.getBalance() + amount);
+        bankAccountRepository.save(sender);
+        bankAccountRepository.save(receiver);
     }
 }
