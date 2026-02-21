@@ -30,4 +30,18 @@ public class BankAccountService {
         account.setBalance(account.getBalance() + amount);
         return bankAccountRepository.save(account);
     }
+
+    public BankAccount withdraw(String accountNumber, Double amount) {
+        BankAccount account = bankAccountRepository
+                .findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new RuntimeException("Account not FOund"));
+        if (amount <= 0) {
+            throw new RuntimeException("Withdraw amount Must be positive");
+        }
+        if (account.getBalance() < amount) {
+            throw new RuntimeException("insufficient balance");
+        }
+        account.setBalance(account.getBalance() - amount);
+        return bankAccountRepository.save(account);
+    }
 }

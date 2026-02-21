@@ -28,4 +28,10 @@ public class BankAccountController {
                                 @RequestParam Double amount){
         return bankAccountService.deposit(accountNumber,amount);
     }
+
+    @PostMapping("/withdraw")
+    public BankAccount withdraw(@RequestParam String accountNumber,
+                                @RequestParam Double amount) {
+        return bankAccountService.withdraw(accountNumber, amount);
+    }
 }
