@@ -34,4 +34,12 @@ public class BankAccountController {
                                 @RequestParam Double amount) {
         return bankAccountService.withdraw(accountNumber, amount);
     }
+
+    @PostMapping("/transfer")
+    public String transfer(@RequestParam String fromAccount,
+                           @RequestParam String toAccount,
+                           @RequestParam Double amount) {
+        bankAccountService.transfer(fromAccount, toAccount, amount);
+        return "Transfer Successful";
+    }
 }
