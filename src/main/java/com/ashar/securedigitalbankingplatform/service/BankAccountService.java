@@ -1,17 +1,22 @@
 package com.ashar.securedigitalbankingplatform.service;
 
 import com.ashar.securedigitalbankingplatform.entity.BankAccount;
+import com.ashar.securedigitalbankingplatform.entity.Transaction;
 import com.ashar.securedigitalbankingplatform.entity.User;
 import com.ashar.securedigitalbankingplatform.repository.BankAccountRepository;
+import com.ashar.securedigitalbankingplatform.repository.TransactionRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
 public class BankAccountService {
 
     private final BankAccountRepository bankAccountRepository;
+    private final TransactionRepository transactionRepository;
 
     public BankAccount createAccount(User user, String accountNumber) {
         BankAccount account = new BankAccount();
@@ -29,6 +34,13 @@ public class BankAccountService {
             throw new RuntimeException("Deposit amount must be positive");
         }
         account.setBalance(account.getBalance() + amount);
+        Transaction transaction = new Transaction();
+        transaction.setType("DEPOSIT");
+        transaction.setAmount(amount);
+        transaction.setTimestamp(LocalDateTime.now());
+        transaction.setAccount(account);
+
+        transactionRepository.save(transaction);
         return bankAccountRepository.save(account);
     }
 
@@ -43,6 +55,14 @@ public class BankAccountService {
             throw new RuntimeException("insufficient balance");
         }
         account.setBalance(account.getBalance() - amount);
+
+        Transaction transaction = new Transaction();
+        transaction.setType("WITHDRAW");
+        transaction.setAmount(amount);
+        transaction.setTimestamp(LocalDateTime.now());
+        transaction.setAccount(account);
+
+        transactionRepository.save(transaction);
         return bankAccountRepository.save(account);
     }
 
@@ -69,6 +89,21 @@ public class BankAccountService {
 
         sender.setBalance(sender.getBalance() - amount);
         receiver.setBalance(receiver.getBalance() + amount);
+        
+        Transaction senderTransaction = new Transaction();
+        senderTransaction.setType("TRANSFER_OUT");
+        senderTransaction.setAmount(amount);
+        senderTransaction.setTimestamp(LocalDateTime.now());
+        senderTransaction.setAccount(sender);
+
+        Transaction receiverTransaction = new Transaction();
+        receiverTransaction.setType("TRANSFER_IN");
+        receiverTransaction.setAmount(amount);
+        receiverTransaction.setTimestamp(LocalDateTime.now());
+        receiverTransaction.setAccount(receiver);
+
+        transactionRepository.save(senderTransaction);
+        transactionRepository.save(receiverTransaction);
         bankAccountRepository.save(sender);
         bankAccountRepository.save(receiver);
     }

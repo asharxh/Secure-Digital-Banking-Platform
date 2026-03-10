@@ -1,11 +1,15 @@
 package com.ashar.securedigitalbankingplatform.controller;
 
 import com.ashar.securedigitalbankingplatform.entity.BankAccount;
+import com.ashar.securedigitalbankingplatform.entity.Transaction;
+import com.ashar.securedigitalbankingplatform.repository.TransactionRepository;
 import com.ashar.securedigitalbankingplatform.entity.User;
 import com.ashar.securedigitalbankingplatform.service.BankAccountService;
 import com.ashar.securedigitalbankingplatform.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/accounts")
@@ -14,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class BankAccountController {
     private final BankAccountService bankAccountService;
     private final UserService userService;
+    private final TransactionRepository transactionRepository;
 
     @PostMapping("/create")
     public BankAccount createAccount(@RequestParam Long userId,
@@ -41,5 +46,9 @@ public class BankAccountController {
                            @RequestParam Double amount) {
         bankAccountService.transfer(fromAccount, toAccount, amount);
         return "Transfer Successful";
+    }
+    @GetMapping("/transactions")
+    public List<Transaction> getTransactions(@RequestParam String accountNumber) {
+        return transactionRepository.findByAccountAccountNumber(accountNumber);
     }
 }
