@@ -9,7 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -106,5 +108,16 @@ public class BankAccountService {
         transactionRepository.save(receiverTransaction);
         bankAccountRepository.save(sender);
         bankAccountRepository.save(receiver);
+    }
+
+    public List<Transaction> getAccountStatement(String accountNumber,
+                                                 LocalDate startDate,
+                                                 LocalDate endDate) {
+
+        LocalDateTime start = startDate.atStartOfDay();
+        LocalDateTime end = endDate.atTime(23,59,59);
+
+        return transactionRepository
+                .findByAccountAccountNumberAndTimestampBetween(accountNumber, start, end);
     }
 }

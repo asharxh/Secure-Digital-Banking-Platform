@@ -9,6 +9,7 @@ import com.ashar.securedigitalbankingplatform.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -50,5 +51,17 @@ public class BankAccountController {
     @GetMapping("/transactions")
     public List<Transaction> getTransactions(@RequestParam String accountNumber) {
         return transactionRepository.findByAccountAccountNumber(accountNumber);
+    }
+
+    @GetMapping("/statement")
+    public List<Transaction> getStatement(
+            @RequestParam String accountNumber,
+            @RequestParam String startDate,
+            @RequestParam String endDate
+    ) {
+        LocalDate start = LocalDate.parse(startDate);
+        LocalDate end = LocalDate.parse(endDate);
+
+        return bankAccountService.getAccountStatement(accountNumber, start, end);
     }
 }
