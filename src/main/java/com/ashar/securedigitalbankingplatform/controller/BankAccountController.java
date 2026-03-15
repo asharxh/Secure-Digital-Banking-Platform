@@ -24,7 +24,7 @@ public class BankAccountController {
     @PostMapping("/create")
     public BankAccount createAccount(@RequestParam Long userId,
                                      @RequestParam String accountNumber) {
-        User user = userService.getUserById(userId); // getUser by ID method is created in UserService
+        User user = userService.findUserEntityById(userId); // getUser by ID method is created in UserService
         // If User Not Available then it'll show runtime exception " user is not found"
         return bankAccountService.createAccount(user, accountNumber);
     }

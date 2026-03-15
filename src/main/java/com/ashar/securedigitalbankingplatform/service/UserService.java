@@ -30,7 +30,19 @@ public class UserService {
 
         return response;
     }
-    public User getUserById(Long id) {
+    public UserResponseDTO getUserById(Long id) {
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        UserResponseDTO dto = new UserResponseDTO();
+        dto.setId(user.getId());
+        dto.setName(user.getName());
+        dto.setEmail(user.getEmail());
+        return dto;
+    }
+    public User findUserEntityById(Long id) {
+
         return userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }

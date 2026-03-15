@@ -6,4 +6,7 @@ import lombok.Data;
 public class UserResponseDTO {
     private String name;
     private String email;
+
+    public void setId(Long id) {
+    }
 }
