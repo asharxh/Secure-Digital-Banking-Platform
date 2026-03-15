@@ -1,5 +1,7 @@
 package com.ashar.securedigitalbankingplatform.controller;
 
+import com.ashar.securedigitalbankingplatform.dto.UserRequestDTO;
+import com.ashar.securedigitalbankingplatform.dto.UserResponseDTO;
 import com.ashar.securedigitalbankingplatform.entity.User;
 import com.ashar.securedigitalbankingplatform.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -14,8 +16,8 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/register")
-    public User register(@RequestBody User user) {
-        return userService.register(user);
+    public UserResponseDTO register(@RequestBody UserRequestDTO request) {
+        return userService.register(request);
     }
 
     @GetMapping("/{id}")

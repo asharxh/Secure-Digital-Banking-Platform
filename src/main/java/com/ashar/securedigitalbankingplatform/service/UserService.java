@@ -1,5 +1,7 @@
 package com.ashar.securedigitalbankingplatform.service;
 
+import com.ashar.securedigitalbankingplatform.dto.UserRequestDTO;
+import com.ashar.securedigitalbankingplatform.dto.UserResponseDTO;
 import com.ashar.securedigitalbankingplatform.entity.User;
 import com.ashar.securedigitalbankingplatform.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,11 +15,20 @@ import java.util.List;
 public class UserService {
     private final UserRepository userRepository;
 
-    public User register(User user) {
-        if(userRepository.findByEmail(user.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already registered");
-        }
-        return userRepository.save(user);
+    public UserResponseDTO register(UserRequestDTO request) {
+
+        User user = new User();
+        user.setName(request.getName());
+        user.setEmail(request.getEmail());
+        user.setPassword(request.getPassword());
+
+        User savedUser = userRepository.save(user);
+
+        UserResponseDTO response = new UserResponseDTO();
+        response.setName(savedUser.getName());
+        response.setEmail(savedUser.getEmail());
+
+        return response;
     }
     public User getUserById(Long id) {
         return userRepository.findById(id)
