@@ -6,11 +6,21 @@ pipeline {
         maven 'Maven3'
     }
 
+    environment {
+        APP_NAME = 'springboot-app'
+    }
+
     stages {
 
-        stage('Build') {
+        stage('Clean') {
             steps {
-                sh 'mvn clean compile'
+                sh 'mvn clean'
+            }
+        }
+
+        stage('Compile') {
+            steps {
+                sh 'mvn compile'
             }
         }
 
@@ -22,8 +32,24 @@ pipeline {
 
         stage('Package') {
             steps {
-                sh 'mvn clean package'
+                sh 'mvn package'
             }
+        }
+
+    }
+
+    post {
+
+        success {
+            echo 'Build Successful'
+        }
+
+        failure {
+            echo 'Build Failed'
+        }
+
+        always {
+            archiveArtifacts artifacts: 'target/*.jar'
         }
     }
 }
