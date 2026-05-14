@@ -1,5 +1,6 @@
 package com.ashar.securedigitalbankingplatform.controller;
 
+import com.ashar.securedigitalbankingplatform.dto.AuthResponseDTO;
 import com.ashar.securedigitalbankingplatform.dto.UserRequestDTO;
 import com.ashar.securedigitalbankingplatform.dto.UserResponseDTO;
 import com.ashar.securedigitalbankingplatform.entity.User;
@@ -16,7 +17,9 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/register")
-    public UserResponseDTO register(@RequestBody UserRequestDTO request) {
+    public AuthResponseDTO register(
+            @RequestBody UserRequestDTO request
+    ) {
         return userService.register(request);
     }
 

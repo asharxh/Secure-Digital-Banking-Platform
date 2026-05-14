@@ -1,10 +1,12 @@
 package com.ashar.securedigitalbankingplatform.service;
 
+import com.ashar.securedigitalbankingplatform.dto.AuthResponseDTO;
 import com.ashar.securedigitalbankingplatform.dto.UserRequestDTO;
 import com.ashar.securedigitalbankingplatform.dto.UserResponseDTO;
 import com.ashar.securedigitalbankingplatform.entity.User;
 import com.ashar.securedigitalbankingplatform.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,19 +16,27 @@ import java.util.List;
 
 public class UserService {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserResponseDTO register(UserRequestDTO request) {
+    public AuthResponseDTO register(UserRequestDTO request) {
 
         User user = new User();
+
         user.setName(request.getName());
         user.setEmail(request.getEmail());
-        user.setPassword(request.getPassword());
+
+        user.setPassword(
+                passwordEncoder.encode(request.getPassword())
+        );
 
         User savedUser = userRepository.save(user);
 
-        UserResponseDTO response = new UserResponseDTO();
+        AuthResponseDTO response = new AuthResponseDTO();
+
+        response.setCustomerId(savedUser.getId());
         response.setName(savedUser.getName());
         response.setEmail(savedUser.getEmail());
+        response.setMessage("User registered successfully");
 
         return response;
     }
