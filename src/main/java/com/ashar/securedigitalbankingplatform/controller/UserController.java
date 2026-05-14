@@ -1,8 +1,6 @@
 package com.ashar.securedigitalbankingplatform.controller;
 
-import com.ashar.securedigitalbankingplatform.dto.AuthResponseDTO;
-import com.ashar.securedigitalbankingplatform.dto.UserRequestDTO;
-import com.ashar.securedigitalbankingplatform.dto.UserResponseDTO;
+import com.ashar.securedigitalbankingplatform.dto.*;
 import com.ashar.securedigitalbankingplatform.entity.User;
 import com.ashar.securedigitalbankingplatform.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -32,4 +30,12 @@ public class UserController {
     public List<UserResponseDTO> getAllUsers() {
         return userService.getAllUsers();
     }
+
+    @PostMapping("/login")
+    public LoginResponseDTO login(
+            @RequestBody LoginRequestDTO request
+    ) {
+        return userService.login(request);
+    }
+
 }

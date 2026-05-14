@@ -1,10 +1,9 @@
 package com.ashar.securedigitalbankingplatform.service;
 
-import com.ashar.securedigitalbankingplatform.dto.AuthResponseDTO;
-import com.ashar.securedigitalbankingplatform.dto.UserRequestDTO;
-import com.ashar.securedigitalbankingplatform.dto.UserResponseDTO;
+import com.ashar.securedigitalbankingplatform.dto.*;
 import com.ashar.securedigitalbankingplatform.entity.User;
 import com.ashar.securedigitalbankingplatform.repository.UserRepository;
+import com.ashar.securedigitalbankingplatform.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,6 +16,7 @@ import java.util.List;
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     public AuthResponseDTO register(UserRequestDTO request) {
 
@@ -68,5 +68,28 @@ public class UserService {
                     return dto;
                 })
                 .toList();
+    }
+
+    public LoginResponseDTO login(LoginRequestDTO request) {
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+
+        boolean passwordMatches = passwordEncoder.matches(
+                request.getPassword(),
+                user.getPassword()
+        );
+
+        if (!passwordMatches) {
+            throw new RuntimeException("Invalid email or password");
+        }
+
+        String token = jwtUtil.generateToken(user.getEmail());
+
+        LoginResponseDTO response = new LoginResponseDTO();
+        response.setToken(token);
+        response.setMessage("Login successful");
+
+        return response;
     }
 }
