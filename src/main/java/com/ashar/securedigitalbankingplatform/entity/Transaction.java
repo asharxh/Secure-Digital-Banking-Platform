@@ -18,6 +18,10 @@ public class Transaction {
     private String type;
     private Double amount;
     private LocalDateTime timestamp;
+    private String referenceNumber;
+    private String senderAccount;
+    private String receiverAccount;
+    private String description;
 
     @ManyToOne
     @JoinColumn(name = "account_id")
