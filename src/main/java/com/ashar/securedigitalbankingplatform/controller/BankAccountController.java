@@ -3,9 +3,12 @@ package com.ashar.securedigitalbankingplatform.controller;
 import com.ashar.securedigitalbankingplatform.dto.AccountCreateRequestDTO;
 import com.ashar.securedigitalbankingplatform.dto.AccountResponseDTO;
 import com.ashar.securedigitalbankingplatform.dto.TransactionResponseDTO;
+import com.ashar.securedigitalbankingplatform.entity.BankAccount;
 import com.ashar.securedigitalbankingplatform.entity.User;
 import com.ashar.securedigitalbankingplatform.service.BankAccountService;
 import com.ashar.securedigitalbankingplatform.service.UserService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +27,7 @@ public class BankAccountController {
 
     @PostMapping("/create")
     public AccountResponseDTO createAccount(
-            @RequestBody AccountCreateRequestDTO request
+            @Valid @RequestBody AccountCreateRequestDTO request
     ) {
         User user = userService.getLoggedInUser();
 
@@ -32,27 +35,19 @@ public class BankAccountController {
     }
 
     @PostMapping("/deposit")
-    public Object deposit(
+    public BankAccount deposit(
             @RequestParam String accountNumber,
-            @RequestParam Double amount
+            @RequestParam @Positive(message = "Amount must be greater than 0") Double amount
     ) {
-
-        return bankAccountService.deposit(
-                accountNumber,
-                amount
-        );
+        return bankAccountService.deposit(accountNumber, amount);
     }
 
     @PostMapping("/withdraw")
-    public Object withdraw(
+    public BankAccount withdraw(
             @RequestParam String accountNumber,
-            @RequestParam Double amount
+            @RequestParam @Positive(message = "Amount must be greater than 0") Double amount
     ) {
-
-        return bankAccountService.withdraw(
-                accountNumber,
-                amount
-        );
+        return bankAccountService.withdraw(accountNumber, amount);
     }
 
     @PostMapping("/transfer")

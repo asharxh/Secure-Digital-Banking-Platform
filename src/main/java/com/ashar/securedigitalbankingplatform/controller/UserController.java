@@ -3,6 +3,7 @@ package com.ashar.securedigitalbankingplatform.controller;
 import com.ashar.securedigitalbankingplatform.dto.*;
 import com.ashar.securedigitalbankingplatform.entity.User;
 import com.ashar.securedigitalbankingplatform.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -16,7 +17,7 @@ public class UserController {
 
     @PostMapping("/register")
     public AuthResponseDTO register(
-            @RequestBody UserRequestDTO request
+            @Valid @RequestBody UserRequestDTO request
     ) {
         return userService.register(request);
     }
