@@ -2,6 +2,8 @@ package com.ashar.securedigitalbankingplatform.service;
 
 import com.ashar.securedigitalbankingplatform.dto.*;
 import com.ashar.securedigitalbankingplatform.entity.User;
+import com.ashar.securedigitalbankingplatform.exception.InvalidCredentialsException;
+import com.ashar.securedigitalbankingplatform.exception.UserNotFoundException;
 import com.ashar.securedigitalbankingplatform.repository.UserRepository;
 import com.ashar.securedigitalbankingplatform.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -13,8 +15,8 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-
 public class UserService {
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
@@ -22,41 +24,40 @@ public class UserService {
     public AuthResponseDTO register(UserRequestDTO request) {
 
         User user = new User();
-
         user.setName(request.getName());
         user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        user.setPassword(
-                passwordEncoder.encode(request.getPassword())
-        );
-
-        User savedUser = userRepository.save(user);
+        User saved = userRepository.save(user);
 
         AuthResponseDTO response = new AuthResponseDTO();
-
-        response.setCustomerId(savedUser.getId());
-        response.setName(savedUser.getName());
-        response.setEmail(savedUser.getEmail());
+        response.setCustomerId(saved.getId());
+        response.setName(saved.getName());
+        response.setEmail(saved.getEmail());
         response.setMessage("User registered successfully");
 
         return response;
     }
+
     public UserResponseDTO getUserById(Long id) {
 
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         UserResponseDTO dto = new UserResponseDTO();
         dto.setId(user.getId());
         dto.setName(user.getName());
         dto.setEmail(user.getEmail());
+
         return dto;
     }
+
     public User findUserEntityById(Long id) {
 
         return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
+
     public List<UserResponseDTO> getAllUsers() {
 
         return userRepository.findAll()
@@ -74,15 +75,17 @@ public class UserService {
     public LoginResponseDTO login(LoginRequestDTO request) {
 
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+                .orElseThrow(() ->
+                        new InvalidCredentialsException("Invalid email or password")
+                );
 
-        boolean passwordMatches = passwordEncoder.matches(
+        boolean match = passwordEncoder.matches(
                 request.getPassword(),
                 user.getPassword()
         );
 
-        if (!passwordMatches) {
-            throw new RuntimeException("Invalid email or password");
+        if (!match) {
+            throw new InvalidCredentialsException("Invalid email or password");
         }
 
         String token = jwtUtil.generateToken(user.getEmail());
@@ -101,9 +104,7 @@ public class UserService {
                 .getAuthentication()
                 .getName();
 
-        return userRepository
-                .findByEmail(email)
-                .orElseThrow(() ->
-                        new RuntimeException("User not found"));
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 }

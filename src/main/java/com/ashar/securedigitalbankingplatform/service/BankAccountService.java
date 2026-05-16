@@ -1,10 +1,15 @@
 package com.ashar.securedigitalbankingplatform.service;
 
+import com.ashar.securedigitalbankingplatform.dto.AccountCreateRequestDTO;
 import com.ashar.securedigitalbankingplatform.dto.AccountResponseDTO;
 import com.ashar.securedigitalbankingplatform.dto.TransactionResponseDTO;
+import com.ashar.securedigitalbankingplatform.entity.AccountType;
 import com.ashar.securedigitalbankingplatform.entity.BankAccount;
 import com.ashar.securedigitalbankingplatform.entity.Transaction;
 import com.ashar.securedigitalbankingplatform.entity.User;
+import com.ashar.securedigitalbankingplatform.exception.AccountNotFoundException;
+import com.ashar.securedigitalbankingplatform.exception.InsufficientBalanceException;
+import com.ashar.securedigitalbankingplatform.exception.UnauthorizedAccessException;
 import com.ashar.securedigitalbankingplatform.repository.BankAccountRepository;
 import com.ashar.securedigitalbankingplatform.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,312 +19,158 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class BankAccountService {
 
     private final BankAccountRepository bankAccountRepository;
-
     private final TransactionRepository transactionRepository;
-
     private final UserService userService;
 
-    public AccountResponseDTO createAccount(User user) {
+    public AccountResponseDTO createAccount(
+            User user,
+            AccountCreateRequestDTO request
+    ) {
 
         BankAccount account = new BankAccount();
 
         account.setUser(user);
-
         account.setBalance(0.0);
+        account.setAccountNumber("ACC" + System.currentTimeMillis());
 
-        String accountNumber =
-                "ACC" + System.currentTimeMillis();
+        account.setAccountType(request.getAccountType());
 
-        account.setAccountNumber(accountNumber);
+        BankAccount saved = bankAccountRepository.save(account);
 
-        BankAccount savedAccount =
-                bankAccountRepository.save(account);
+        AccountResponseDTO dto = new AccountResponseDTO();
+        dto.setAccountNumber(saved.getAccountNumber());
+        dto.setBalance(saved.getBalance());
 
-        AccountResponseDTO response =
-                new AccountResponseDTO();
-
-        response.setAccountNumber(
-                savedAccount.getAccountNumber()
-        );
-
-        response.setBalance(
-                savedAccount.getBalance()
-        );
-
-        return response;
+        return dto;
     }
 
     public BankAccount getUserAccount(String accountNumber) {
 
-        User loggedInUser = userService.getLoggedInUser();
-
-        System.out.println("Logged In User ID: "
-                + loggedInUser.getId());
-
-        System.out.println("Logged In User Email: "
-                + loggedInUser.getEmail());
+        User user = userService.getLoggedInUser();
 
         BankAccount account = bankAccountRepository
                 .findByAccountNumber(accountNumber)
-                .orElseThrow(() ->
-                        new RuntimeException("Account not found"));
+                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
-        System.out.println("Account Owner ID: "
-                + account.getUser().getId());
-
-        System.out.println("Requested Account: "
-                + account.getAccountNumber());
-
-        if (!account.getUser().getId()
-                .equals(loggedInUser.getId())) {
-
-            throw new RuntimeException(
-                    "Access denied: Not your account"
-            );
+        if (!account.getUser().getId().equals(user.getId())) {
+            throw new UnauthorizedAccessException("Access denied: Not your account");
         }
 
         return account;
     }
 
-    public BankAccount deposit(
-            String accountNumber,
-            Double amount
-    ) {
+    public BankAccount deposit(String accountNumber, Double amount) {
 
-        BankAccount account =
-                getUserAccount(accountNumber);
+        BankAccount account = getUserAccount(accountNumber);
 
         if (amount <= 0) {
-
-            throw new RuntimeException(
-                    "Deposit amount must be positive"
-            );
+            throw new IllegalArgumentException("Deposit amount must be positive");
         }
 
-        account.setBalance(
-                account.getBalance() + amount
-        );
+        account.setBalance(account.getBalance() + amount);
 
-        Transaction transaction =
-                new Transaction();
+        Transaction tx = new Transaction();
+        tx.setType("DEPOSIT");
+        tx.setAmount(amount);
+        tx.setTimestamp(LocalDateTime.now());
+        tx.setReferenceNumber("TXN" + System.currentTimeMillis());
+        tx.setReceiverAccount(accountNumber);
+        tx.setDescription("Cash deposit");
+        tx.setAccount(account);
 
-        transaction.setType("DEPOSIT");
-
-        transaction.setAmount(amount);
-
-        transaction.setTimestamp(
-                LocalDateTime.now()
-        );
-
-        transaction.setReferenceNumber(
-                "TXN" + System.currentTimeMillis()
-        );
-
-        transaction.setReceiverAccount(
-                accountNumber
-        );
-
-        transaction.setDescription(
-                "Cash deposit"
-        );
-
-        transaction.setAccount(account);
-
-        transactionRepository.save(transaction);
+        transactionRepository.save(tx);
 
         return bankAccountRepository.save(account);
     }
 
-    public BankAccount withdraw(
-            String accountNumber,
-            Double amount
-    ) {
+    public BankAccount withdraw(String accountNumber, Double amount) {
 
-        BankAccount account =
-                getUserAccount(accountNumber);
+        BankAccount account = getUserAccount(accountNumber);
 
         if (amount <= 0) {
-
-            throw new RuntimeException(
-                    "Withdraw amount must be positive"
-            );
+            throw new IllegalArgumentException("Withdraw amount must be positive");
         }
 
         if (account.getBalance() < amount) {
-
-            throw new RuntimeException(
-                    "Insufficient balance"
-            );
+            throw new InsufficientBalanceException("Insufficient balance");
         }
 
-        account.setBalance(
-                account.getBalance() - amount
-        );
+        account.setBalance(account.getBalance() - amount);
 
-        Transaction transaction =
-                new Transaction();
+        Transaction tx = new Transaction();
+        tx.setType("WITHDRAW");
+        tx.setAmount(amount);
+        tx.setTimestamp(LocalDateTime.now());
+        tx.setReferenceNumber("TXN" + System.currentTimeMillis());
+        tx.setSenderAccount(accountNumber);
+        tx.setDescription("Cash withdrawal");
+        tx.setAccount(account);
 
-        transaction.setType("WITHDRAW");
-
-        transaction.setAmount(amount);
-
-        transaction.setTimestamp(
-                LocalDateTime.now()
-        );
-
-        transaction.setReferenceNumber(
-                "TXN" + System.currentTimeMillis()
-        );
-
-        transaction.setSenderAccount(
-                accountNumber
-        );
-
-        transaction.setDescription(
-                "Cash withdrawal"
-        );
-
-        transaction.setAccount(account);
-
-        transactionRepository.save(transaction);
+        transactionRepository.save(tx);
 
         return bankAccountRepository.save(account);
     }
 
     @Transactional
-    public void transfer(
-            String fromAccount,
-            String toAccount,
-            Double amount
-    ) {
+    public void transfer(String fromAccount, String toAccount, Double amount) {
 
         if (fromAccount.equals(toAccount)) {
-
-            throw new RuntimeException(
-                    "Cannot transfer to same account"
-            );
+            throw new IllegalArgumentException("Cannot transfer to same account");
         }
 
-        BankAccount sender =
-                getUserAccount(fromAccount);
+        BankAccount sender = getUserAccount(fromAccount);
 
-        BankAccount receiver =
-                bankAccountRepository
-                        .findByAccountNumber(toAccount)
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Receiver not found"
-                                ));
+        BankAccount receiver = bankAccountRepository
+                .findByAccountNumber(toAccount)
+                .orElseThrow(() -> new AccountNotFoundException("Receiver not found"));
 
         if (amount <= 0) {
-
-            throw new RuntimeException(
-                    "Enter positive amount"
-            );
+            throw new IllegalArgumentException("Amount must be positive");
         }
 
         if (sender.getBalance() < amount) {
-
-            throw new RuntimeException(
-                    "Insufficient balance"
-            );
+            throw new InsufficientBalanceException("Insufficient balance");
         }
 
-        sender.setBalance(
-                sender.getBalance() - amount
-        );
+        sender.setBalance(sender.getBalance() - amount);
+        receiver.setBalance(receiver.getBalance() + amount);
 
-        receiver.setBalance(
-                receiver.getBalance() + amount
-        );
+        String ref = "TXN" + System.currentTimeMillis();
 
-        String reference =
-                "TXN" + System.currentTimeMillis();
+        Transaction out = new Transaction();
+        out.setType("TRANSFER_OUT");
+        out.setAmount(amount);
+        out.setTimestamp(LocalDateTime.now());
+        out.setReferenceNumber(ref);
+        out.setSenderAccount(fromAccount);
+        out.setReceiverAccount(toAccount);
+        out.setDescription("Money sent");
+        out.setAccount(sender);
 
-        Transaction senderTransaction =
-                new Transaction();
+        Transaction in = new Transaction();
+        in.setType("TRANSFER_IN");
+        in.setAmount(amount);
+        in.setTimestamp(LocalDateTime.now());
+        in.setReferenceNumber(ref);
+        in.setSenderAccount(fromAccount);
+        in.setReceiverAccount(toAccount);
+        in.setDescription("Money received");
+        in.setAccount(receiver);
 
-        senderTransaction.setType(
-                "TRANSFER_OUT"
-        );
-
-        senderTransaction.setAmount(amount);
-
-        senderTransaction.setTimestamp(
-                LocalDateTime.now()
-        );
-
-        senderTransaction.setReferenceNumber(
-                reference
-        );
-
-        senderTransaction.setSenderAccount(
-                fromAccount
-        );
-
-        senderTransaction.setReceiverAccount(
-                toAccount
-        );
-
-        senderTransaction.setDescription(
-                "Money sent"
-        );
-
-        senderTransaction.setAccount(sender);
-
-        Transaction receiverTransaction =
-                new Transaction();
-
-        receiverTransaction.setType(
-                "TRANSFER_IN"
-        );
-
-        receiverTransaction.setAmount(amount);
-
-        receiverTransaction.setTimestamp(
-                LocalDateTime.now()
-        );
-
-        receiverTransaction.setReferenceNumber(
-                reference
-        );
-
-        receiverTransaction.setSenderAccount(
-                fromAccount
-        );
-
-        receiverTransaction.setReceiverAccount(
-                toAccount
-        );
-
-        receiverTransaction.setDescription(
-                "Money received"
-        );
-
-        receiverTransaction.setAccount(receiver);
-
-        transactionRepository.save(
-                senderTransaction
-        );
-
-        transactionRepository.save(
-                receiverTransaction
-        );
+        transactionRepository.save(out);
+        transactionRepository.save(in);
 
         bankAccountRepository.save(sender);
-
         bankAccountRepository.save(receiver);
     }
 
-    public List<TransactionResponseDTO>
-    getAccountStatement(
+    public List<TransactionResponseDTO> getAccountStatement(
             String accountNumber,
             LocalDate startDate,
             LocalDate endDate
@@ -327,85 +178,38 @@ public class BankAccountService {
 
         getUserAccount(accountNumber);
 
-        LocalDateTime start =
-                startDate.atStartOfDay();
+        LocalDateTime start = startDate.atStartOfDay();
+        LocalDateTime end = endDate.atTime(23, 59, 59);
 
-        LocalDateTime end =
-                endDate.atTime(23, 59, 59);
-
-        List<Transaction> transactions =
-                transactionRepository
-                        .findByAccountAccountNumberAndTimestampBetween(
-                                accountNumber,
-                                start,
-                                end
-                        );
-
-        return transactions.stream()
-                .map(transaction -> {
-
-                    TransactionResponseDTO dto =
-                            new TransactionResponseDTO();
-
-                    dto.setReferenceNumber(
-                            transaction.getReferenceNumber()
-                    );
-
-                    dto.setType(
-                            transaction.getType()
-                    );
-
-                    dto.setAmount(
-                            transaction.getAmount()
-                    );
-
-                    dto.setSenderAccount(
-                            transaction.getSenderAccount()
-                    );
-
-                    dto.setReceiverAccount(
-                            transaction.getReceiverAccount()
-                    );
-
-                    dto.setDescription(
-                            transaction.getDescription()
-                    );
-
-                    dto.setTimestamp(
-                            transaction.getTimestamp()
-                    );
-
+        return transactionRepository
+                .findByAccountAccountNumberAndTimestampBetween(accountNumber, start, end)
+                .stream()
+                .map(t -> {
+                    TransactionResponseDTO dto = new TransactionResponseDTO();
+                    dto.setReferenceNumber(t.getReferenceNumber());
+                    dto.setType(t.getType());
+                    dto.setAmount(t.getAmount());
+                    dto.setSenderAccount(t.getSenderAccount());
+                    dto.setReceiverAccount(t.getReceiverAccount());
+                    dto.setDescription(t.getDescription());
+                    dto.setTimestamp(t.getTimestamp());
                     return dto;
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 
-    public List<AccountResponseDTO>
-    getMyAccounts() {
+    public List<AccountResponseDTO> getMyAccounts() {
 
-        User loggedInUser =
-                userService.getLoggedInUser();
+        User user = userService.getLoggedInUser();
 
-        return bankAccountRepository
-                .findByUserId(
-                        loggedInUser.getId()
-                )
+        return bankAccountRepository.findByUserId(user.getId())
                 .stream()
                 .map(account -> {
-
-                    AccountResponseDTO dto =
-                            new AccountResponseDTO();
-
-                    dto.setAccountNumber(
-                            account.getAccountNumber()
-                    );
-
-                    dto.setBalance(
-                            account.getBalance()
-                    );
-
+                    AccountResponseDTO dto = new AccountResponseDTO();
+                    dto.setAccountNumber(account.getAccountNumber());
+                    dto.setBalance(account.getBalance());
                     return dto;
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 }

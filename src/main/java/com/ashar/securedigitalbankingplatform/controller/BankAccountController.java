@@ -1,5 +1,6 @@
 package com.ashar.securedigitalbankingplatform.controller;
 
+import com.ashar.securedigitalbankingplatform.dto.AccountCreateRequestDTO;
 import com.ashar.securedigitalbankingplatform.dto.AccountResponseDTO;
 import com.ashar.securedigitalbankingplatform.dto.TransactionResponseDTO;
 import com.ashar.securedigitalbankingplatform.entity.User;
@@ -22,11 +23,12 @@ public class BankAccountController {
     private final UserService userService;
 
     @PostMapping("/create")
-    public AccountResponseDTO createAccount() {
-
+    public AccountResponseDTO createAccount(
+            @RequestBody AccountCreateRequestDTO request
+    ) {
         User user = userService.getLoggedInUser();
 
-        return bankAccountService.createAccount(user);
+        return bankAccountService.createAccount(user, request);
     }
 
     @PostMapping("/deposit")
