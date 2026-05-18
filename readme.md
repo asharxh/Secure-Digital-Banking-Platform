@@ -1,10 +1,20 @@
 # Secure Digital Banking Platform
 
-A backend banking system built using modern Java technologies to simulate real-world digital banking operations.
+A production-style backend banking system built using modern Java and Spring Boot technologies to simulate real-world digital banking operations.
 
-This project is being built step-by-step to understand how real banking systems work — including **user management, bank accounts, deposits, withdrawals, transfers, and transaction history**.
+This project focuses on building a secure and scalable banking backend with features such as:
 
-The goal is to practice **backend architecture, database design, and financial transaction logic** while building a production-style API.
+* User authentication with JWT
+* Role-Based Access Control (RBAC)
+* Bank account management
+* Deposits, withdrawals, and transfers
+* Transaction history and statements
+* Fraud detection system
+* Audit logging
+* Account freeze/unfreeze system
+* Exception handling and validation
+
+The goal of this project is to deeply understand backend architecture, financial transaction systems, database design, and secure API development.
 
 ---
 
@@ -12,6 +22,8 @@ The goal is to practice **backend architecture, database design, and financial t
 
 * Java 17
 * Spring Boot
+* Spring Security
+* JWT Authentication
 * Spring Data JPA
 * Hibernate
 * PostgreSQL
@@ -20,29 +32,134 @@ The goal is to practice **backend architecture, database design, and financial t
 
 ---
 
+# Features
+
+## Authentication & Security
+
+* JWT-based authentication
+* Password encryption using BCrypt
+* Role-Based Access Control (USER / ADMIN)
+* Secure protected APIs
+* Account ownership validation
+* Unauthorized access prevention
+
+---
+
+## Banking Features
+
+* User registration & login
+* Create bank account
+* Multiple accounts per user
+* Deposit money
+* Withdraw money
+* Transfer money between accounts
+* Account statement with date filtering
+* Transaction history tracking
+
+---
+
+## Admin Features
+
+* View all users
+* View all accounts
+* View all transactions
+* View audit logs
+* View fraud alerts
+* Freeze bank accounts
+* Unfreeze bank accounts
+
+---
+
+## Fraud Detection System
+
+The system automatically detects suspicious activities such as:
+
+* Large deposits
+* Large withdrawals
+* Large transfers
+
+Fraud alerts are stored in the database and visible to admins.
+
+---
+
+## Audit Logging System
+
+Tracks important system activities:
+
+* Deposits
+* Withdrawals
+* Transfers
+* Admin actions
+* Security-sensitive operations
+
+Each audit log contains:
+
+* Username
+* Action
+* Details
+* Timestamp
+
+---
+
+## Account Freeze System
+
+Admins can freeze/unfreeze bank accounts.
+
+Frozen accounts cannot:
+
+* Deposit money
+* Withdraw money
+* Transfer money
+
+---
+
+## Pagination Support
+
+Pagination implemented for:
+
+* Users
+* Accounts
+* Transactions
+
+Supports:
+
+* page
+* size
+* sorting
+
+---
+
 # Project Structure
 
-```
-com.example.bank
- ├── controller
- ├── service
- ├── repository
- ├── entity
- ├── dto
- ├── exception
+```text
+com.ashar.securedigitalbankingplatform
+│
+├── controller
+├── service
+├── repository
+├── entity
+├── dto
+├── security
+├── exception
 ```
 
+---
+
 # Database Configuration
+
+## Create PostgreSQL Database
 
 ```sql
 CREATE DATABASE bankdb;
 ```
 
-### application.properties
+---
 
-```
+## application.properties
+
+```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/bankdb
-spring.datasource.username=your_username
+spring.datasource.username=ashar
 spring.datasource.password=your_password
 
 spring.jpa.hibernate.ddl-auto=update
@@ -50,65 +167,90 @@ spring.jpa.show-sql=true
 spring.jpa.properties.hibernate.format_sql=true
 ```
 
-Spring Boot will automatically create tables using JPA.
-
 ---
 
 # Database Design
 
-### Users Table
+## User Entity
 
-| Column   | Type   |
-| -------- | ------ |
-| id       | Long   |
-| name     | String |
-| email    | String |
-| password | String |
+| Field     | Type          |
+| --------- | ------------- |
+| id        | Long          |
+| name      | String        |
+| email     | String        |
+| password  | String        |
+| role      | USER / ADMIN  |
+| createdAt | LocalDateTime |
+| updatedAt | LocalDateTime |
 
 ---
 
-### Bank Accounts Table
+## BankAccount Entity
 
-| Column         | Type   |
-| -------------- | ------ |
-| id             | Long   |
-| account_number | String |
-| balance        | Double |
-| user_id        | FK     |
+| Field         | Type              |
+| ------------- | ----------------- |
+| id            | Long              |
+| accountNumber | String            |
+| balance       | Double            |
+| accountType   | SAVINGS / CURRENT |
+| frozen        | boolean           |
+| user_id       | FK                |
+| createdAt     | LocalDateTime     |
+| updatedAt     | LocalDateTime     |
 
+---
 
-### Transactions Table
+## Transaction Entity
 
-| Column     | Type          |
-| ---------- | ------------- |
-| id         | Long          |
-| type       | String        |
-| amount     | Double        |
-| timestamp  | LocalDateTime |
-| account_id | FK            |
+| Field           | Type          |
+| --------------- | ------------- |
+| id              | Long          |
+| referenceNumber | String        |
+| type            | String        |
+| amount          | Double        |
+| senderAccount   | String        |
+| receiverAccount | String        |
+| description     | String        |
+| timestamp       | LocalDateTime |
+| account_id      | FK            |
 
-Transaction types:
+---
 
-```
-DEPOSIT
-WITHDRAW
-TRANSFER_IN
-TRANSFER_OUT
-```
+## AuditLog Entity
+
+| Field     | Type          |
+| --------- | ------------- |
+| id        | Long          |
+| username  | String        |
+| action    | String        |
+| details   | String        |
+| timestamp | LocalDateTime |
+
+---
+
+## FraudAlert Entity
+
+| Field         | Type          |
+| ------------- | ------------- |
+| id            | Long          |
+| accountNumber | String        |
+| reason        | String        |
+| amount        | Double        |
+| timestamp     | LocalDateTime |
 
 ---
 
 # API Endpoints
 
-## User APIs
+# Authentication APIs
 
-### Register User
+## Register User
 
-```
+```http
 POST /users/register
 ```
 
-Request Body:
+### Request Body
 
 ```json
 {
@@ -120,134 +262,224 @@ Request Body:
 
 ---
 
-### Get User By ID
+## Login
 
+```http
+POST /users/login
 ```
-GET /users/{id}
+
+### Request Body
+
+```json
+{
+  "email": "ashar@gmail.com",
+  "password": "123456"
+}
 ```
 
----
+### Response
 
-### Get All Users
-
-```
-GET /users
+```json
+{
+  "token": "jwt_token_here",
+  "message": "Login successful"
+}
 ```
 
 ---
 
 # Account APIs
 
-### Create Bank Account
+## Create Account
 
+```http
+POST /accounts/create
 ```
-POST /accounts/create?userId=1&accountNumber=1234567890
+
+### Headers
+
+```text
+Authorization: Bearer your_jwt_token
+```
+
+### Request Body
+
+```json
+{
+  "accountType": "SAVINGS"
+}
 ```
 
 ---
 
-### Deposit Money
+## Get My Accounts
 
-```
-POST /accounts/deposit?accountNumber=1234567890&amount=500
+```http
+GET /accounts/my
 ```
 
 ---
 
-### Withdraw Money
+## Deposit Money
 
-```
-POST /accounts/withdraw?accountNumber=1234567890&amount=200
+```http
+POST /accounts/deposit
 ```
 
-Withdraw operation validates **available balance** before processing.
+### Params
+
+```text
+accountNumber=ACC123
+amount=500
+```
 
 ---
 
-### Transfer Money
+## Withdraw Money
 
-```
-POST /accounts/transfer?fromAccount=1234567890&toAccount=9876543210&amount=100
+```http
+POST /accounts/withdraw
 ```
 
-Money transfer uses **transactional processing** to ensure database consistency.
+---
+
+## Transfer Money
+
+```http
+POST /accounts/transfer
+```
+
+### Params
+
+```text
+fromAccount=ACC123
+toAccount=ACC456
+amount=1000
+```
 
 ---
 
 # Transaction APIs
 
-### View Transaction History
+## Transaction History
 
-```
-GET /accounts/transactions?accountNumber=1234567890
+```http
+GET /accounts/transactions
 ```
 
 ---
 
-### Account Statement (Date Range)
+## Account Statement
 
-```
-GET /accounts/statement?accountNumber=1234567890&startDate=2024-01-01&endDate=2024-12-31
+```http
+GET /accounts/statement
 ```
 
-Returns all transactions between the given dates.
+### Params
+
+```text
+accountNumber=ACC123
+startDate=2026-01-01
+endDate=2026-12-31
+```
 
 ---
 
-# Global Exception Handling
+# Admin APIs
 
-Centralized exception handling implemented using:
+## Get All Users
 
+```http
+GET /admin/users?page=0&size=5
 ```
-@RestControllerAdvice
-```
-
-Handles errors such as:
-
-* User not found
-* Account not found
-* Insufficient balance
-* Invalid transaction requests
 
 ---
 
-# What I Learned From This Project
+## Get All Accounts
 
-* Building REST APIs with Spring Boot
-* Connecting Spring Boot with PostgreSQL
-* Designing database relationships using JPA
-* Implementing business logic in the service layer
-* Managing financial transactions safely using `@Transactional`
-* Implementing DTO pattern for secure API responses
-* Global exception handling
-* Designing real-world banking features
+```http
+GET /admin/accounts?page=0&size=5
+```
 
 ---
 
-# Upcoming Features
+## Get All Transactions
 
-Planned improvements:
+```http
+GET /admin/transactions?page=0&size=5
+```
 
-* Password encryption (BCrypt)
-* Authentication system
-* JWT-based security
-* Pagination for transactions
-* Swagger API documentation
+---
+
+## Get Audit Logs
+
+```http
+GET /admin/audit-logs
+```
+
+---
+
+## Get Fraud Alerts
+
+```http
+GET /admin/fraud-alerts
+```
+
+---
+
+## Freeze Account
+
+```http
+POST /admin/accounts/{accountNumber}/freeze
+```
+
+---
+
+## Unfreeze Account
+
+```http
+POST /admin/accounts/{accountNumber}/unfreeze
+```
+---
+
+# Security Architecture
+
+The system uses:
+
+* JWT Authentication Filter
+* Spring Security Filter Chain
+* Role-based authorization
+* Secure password hashing
+* Ownership validation
+
+---
+
+# Future Improvements
+
+Planned upgrades:
+
+
+* Redis caching
 * Unit & integration testing
-* Docker containerization
+* Rate limiting
+* Microservices architecture
+* AI Customer Support Bot
+* AI Fraud Detection
+* Kafka for Transaction Events
+* Security Enhancements
 
 ---
 
 # Project Goal
 
-The goal of this project is to **learn backend architecture deeply and simulate real-world digital banking operations**, focusing on clean design, security, and reliable transaction processing.
+The goal of this project is to simulate a real-world secure digital banking backend while learning industry-standard backend development practices, scalable architecture, and secure financial transaction processing.
 
 ---
 
 # Author
 
-**Ashar Arif**
+**Ashar**
 
-Email: asharxheikh47@gmail.com
+GitHub: https://github.com/asharxh
 
-LinkedIn: linkedin.com/in/ashararif/
+LinkedIn: https://www.linkedin.com/in/ashararif/
