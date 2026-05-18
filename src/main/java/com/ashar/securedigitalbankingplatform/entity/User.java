@@ -1,6 +1,9 @@
 package com.ashar.securedigitalbankingplatform.entity;
 
 import jakarta.persistence.*;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import com.ashar.securedigitalbankingplatform.entity.Role;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -38,4 +41,7 @@ public class User {
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
 }

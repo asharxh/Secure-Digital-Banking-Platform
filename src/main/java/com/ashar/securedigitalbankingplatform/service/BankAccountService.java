@@ -212,4 +212,19 @@ public class BankAccountService {
                 })
                 .toList();
     }
+    public List<AccountResponseDTO> getAllAccountsForAdmin() {
+
+        return bankAccountRepository.findAll()
+                .stream()
+                .map(account -> {
+
+                    AccountResponseDTO dto = new AccountResponseDTO();
+
+                    dto.setAccountNumber(account.getAccountNumber());
+                    dto.setBalance(account.getBalance());
+
+                    return dto;
+                })
+                .toList();
+    }
 }

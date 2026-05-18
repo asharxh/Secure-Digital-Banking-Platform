@@ -17,7 +17,8 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+public class JwtAuthenticationFilter
+        extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
 
@@ -42,7 +43,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
 
-            String email = jwtUtil.extractEmail(token);
+            String email =
+                    jwtUtil.extractEmail(token);
+
+            String role =
+                    jwtUtil.extractRole(token);
 
             if (email != null &&
                     SecurityContextHolder.getContext()
@@ -53,7 +58,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                 email,
                                 null,
                                 List.of(
-                                        new SimpleGrantedAuthority("ROLE_USER")
+                                        new SimpleGrantedAuthority(
+                                                "ROLE_" + role
+                                        )
                                 )
                         );
 
@@ -62,13 +69,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                 .buildDetails(request)
                 );
 
-                SecurityContextHolder.getContext()
+                SecurityContextHolder
+                        .getContext()
                         .setAuthentication(authToken);
             }
 
         } catch (Exception e) {
 
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setStatus(
+                    HttpServletResponse.SC_UNAUTHORIZED
+            );
+
             return;
         }
 

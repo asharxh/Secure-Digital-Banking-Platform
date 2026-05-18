@@ -46,4 +46,25 @@ public class TransactionService {
                 })
                 .toList();
     }
+
+    public List<TransactionResponseDTO> getAllTransactions() {
+
+        return transactionRepository.findAll()
+                .stream()
+                .map(tx -> {
+
+                    TransactionResponseDTO dto = new TransactionResponseDTO();
+
+                    dto.setReferenceNumber(tx.getReferenceNumber());
+                    dto.setType(tx.getType());
+                    dto.setAmount(tx.getAmount());
+                    dto.setSenderAccount(tx.getSenderAccount());
+                    dto.setReceiverAccount(tx.getReceiverAccount());
+                    dto.setDescription(tx.getDescription());
+                    dto.setTimestamp(tx.getTimestamp());
+
+                    return dto;
+                })
+                .toList();
+    }
 }
