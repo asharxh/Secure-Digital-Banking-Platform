@@ -7,6 +7,8 @@ import com.ashar.securedigitalbankingplatform.service.UserService;
 import com.ashar.securedigitalbankingplatform.service.BankAccountService;
 import com.ashar.securedigitalbankingplatform.service.TransactionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,8 +25,8 @@ public class AdminController {
 
     @GetMapping("/users")
     @PreAuthorize("hasRole('ADMIN')")
-    public List<UserResponseDTO> getAllUsers() {
-        return userService.getAllUsers();
+    public Page<UserResponseDTO> getAllUsers(Pageable pageable) {
+        return userService.getAllUsers(pageable);
     }
 
     @GetMapping("/users/{id}")

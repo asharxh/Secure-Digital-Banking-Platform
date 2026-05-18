@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -133,5 +135,20 @@ public class UserService {
                                 "User not found"
                         )
                 );
+    }
+
+    public Page<UserResponseDTO> getAllUsers(Pageable pageable) {
+
+        return userRepository.findAll(pageable)
+                .map(user -> {
+
+                    UserResponseDTO dto = new UserResponseDTO();
+
+                    dto.setId(user.getId());
+                    dto.setName(user.getName());
+                    dto.setEmail(user.getEmail());
+
+                    return dto;
+                });
     }
 }
