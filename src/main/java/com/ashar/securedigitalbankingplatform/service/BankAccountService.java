@@ -30,6 +30,7 @@ public class BankAccountService {
     private final TransactionRepository transactionRepository;
     private final UserService userService;
     private final AuditService auditService;
+    private final FraudDetectionService fraudDetectionService;
 
     public AccountResponseDTO createAccount(
             User user,
@@ -75,6 +76,7 @@ public class BankAccountService {
         if (amount <= 0) {
             throw new IllegalArgumentException("Deposit amount must be positive");
         }
+        fraudDetectionService.checkLargeTransaction(accountNumber, amount);
 
         account.setBalance(account.getBalance() + amount);
 
@@ -109,6 +111,7 @@ public class BankAccountService {
         if (account.getBalance() < amount) {
             throw new InsufficientBalanceException("Insufficient balance");
         }
+        fraudDetectionService.checkLargeTransaction(accountNumber, amount);
 
         account.setBalance(account.getBalance() - amount);
 
@@ -152,6 +155,7 @@ public class BankAccountService {
         if (sender.getBalance() < amount) {
             throw new InsufficientBalanceException("Insufficient balance");
         }
+        fraudDetectionService.checkLargeTransaction(fromAccount, amount);
 
         sender.setBalance(sender.getBalance() - amount);
         receiver.setBalance(receiver.getBalance() + amount);
