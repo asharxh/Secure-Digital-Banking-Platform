@@ -37,13 +37,13 @@ public class AdminController {
 
     @GetMapping("/accounts")
     @PreAuthorize("hasRole('ADMIN')")
-    public List<AccountResponseDTO> getAllAccounts() {
-        return bankAccountService.getAllAccountsForAdmin();
+    public Page<AccountResponseDTO> getAllAccounts(Pageable pageable) {
+        return bankAccountService.getAllAccountsForAdmin(pageable);
     }
 
     @GetMapping("/transactions")
     @PreAuthorize("hasRole('ADMIN')")
-    public List<TransactionResponseDTO> getAllTransactions() {
-        return transactionService.getAllTransactions();
+    public Page<TransactionResponseDTO> getAllTransactions(Pageable pageable) {
+        return transactionService.getAllTransactions(pageable);
     }
 }

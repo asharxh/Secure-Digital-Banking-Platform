@@ -15,6 +15,8 @@ import com.ashar.securedigitalbankingplatform.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -226,5 +228,18 @@ public class BankAccountService {
                     return dto;
                 })
                 .toList();
+    }
+    public Page<AccountResponseDTO> getAllAccountsForAdmin(Pageable pageable) {
+
+        return bankAccountRepository.findAll(pageable)
+                .map(account -> {
+
+                    AccountResponseDTO dto = new AccountResponseDTO();
+
+                    dto.setAccountNumber(account.getAccountNumber());
+                    dto.setBalance(account.getBalance());
+
+                    return dto;
+                });
     }
 }

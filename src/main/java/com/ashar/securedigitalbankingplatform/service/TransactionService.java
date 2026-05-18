@@ -6,6 +6,8 @@ import com.ashar.securedigitalbankingplatform.entity.Transaction;
 import com.ashar.securedigitalbankingplatform.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -66,5 +68,24 @@ public class TransactionService {
                     return dto;
                 })
                 .toList();
+    }
+
+    public Page<TransactionResponseDTO> getAllTransactions(Pageable pageable) {
+
+        return transactionRepository.findAll(pageable)
+                .map(tx -> {
+
+                    TransactionResponseDTO dto = new TransactionResponseDTO();
+
+                    dto.setReferenceNumber(tx.getReferenceNumber());
+                    dto.setType(tx.getType());
+                    dto.setAmount(tx.getAmount());
+                    dto.setSenderAccount(tx.getSenderAccount());
+                    dto.setReceiverAccount(tx.getReceiverAccount());
+                    dto.setDescription(tx.getDescription());
+                    dto.setTimestamp(tx.getTimestamp());
+
+                    return dto;
+                });
     }
 }
