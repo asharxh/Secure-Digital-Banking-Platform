@@ -73,6 +73,8 @@ public class BankAccountService {
 
         BankAccount account = getUserAccount(accountNumber);
 
+        checkIfFrozen(account);
+
         if (amount <= 0) {
             throw new IllegalArgumentException("Deposit amount must be positive");
         }
@@ -103,6 +105,8 @@ public class BankAccountService {
     public BankAccount withdraw(String accountNumber, Double amount) {
 
         BankAccount account = getUserAccount(accountNumber);
+
+        checkIfFrozen(account);
 
         if (amount <= 0) {
             throw new IllegalArgumentException("Withdraw amount must be positive");
@@ -143,6 +147,8 @@ public class BankAccountService {
         }
 
         BankAccount sender = getUserAccount(fromAccount);
+
+        checkIfFrozen(sender);
 
         BankAccount receiver = bankAccountRepository
                 .findByAccountNumber(toAccount)
@@ -264,5 +270,12 @@ public class BankAccountService {
 
                     return dto;
                 });
+    }
+
+    private void checkIfFrozen(BankAccount account) {
+
+        if (account.isFrozen()) {
+            throw new RuntimeException("Account is frozen. Transaction not allowed.");
+        }
     }
 }

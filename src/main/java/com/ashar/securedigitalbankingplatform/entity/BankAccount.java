@@ -48,4 +48,7 @@ public class BankAccount {
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    private boolean frozen = false;
+    private boolean active = true;
 }
