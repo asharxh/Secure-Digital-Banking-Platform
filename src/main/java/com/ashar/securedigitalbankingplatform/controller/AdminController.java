@@ -3,6 +3,7 @@ package com.ashar.securedigitalbankingplatform.controller;
 import com.ashar.securedigitalbankingplatform.dto.UserResponseDTO;
 import com.ashar.securedigitalbankingplatform.dto.AccountResponseDTO;
 import com.ashar.securedigitalbankingplatform.dto.TransactionResponseDTO;
+import com.ashar.securedigitalbankingplatform.service.AuditService;
 import com.ashar.securedigitalbankingplatform.service.UserService;
 import com.ashar.securedigitalbankingplatform.service.BankAccountService;
 import com.ashar.securedigitalbankingplatform.service.TransactionService;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import com.ashar.securedigitalbankingplatform.entity.AuditLog;
 
 import java.util.List;
 
@@ -22,6 +24,7 @@ public class AdminController {
     private final UserService userService;
     private final BankAccountService bankAccountService;
     private final TransactionService transactionService;
+    private final AuditService auditService;
 
     @GetMapping("/users")
     @PreAuthorize("hasRole('ADMIN')")
@@ -45,5 +48,11 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     public Page<TransactionResponseDTO> getAllTransactions(Pageable pageable) {
         return transactionService.getAllTransactions(pageable);
+    }
+
+    @GetMapping("/auditlogs")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<AuditLog> getAuditLogs() {
+        return auditService.getAllLogs();
     }
 }

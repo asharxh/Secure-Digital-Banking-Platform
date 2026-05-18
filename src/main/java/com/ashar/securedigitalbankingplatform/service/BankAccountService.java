@@ -29,6 +29,7 @@ public class BankAccountService {
     private final BankAccountRepository bankAccountRepository;
     private final TransactionRepository transactionRepository;
     private final UserService userService;
+    private final AuditService auditService;
 
     public AccountResponseDTO createAccount(
             User user,
@@ -88,6 +89,12 @@ public class BankAccountService {
 
         transactionRepository.save(tx);
 
+        auditService.log(
+                account.getUser().getEmail(),
+                "DEPOSIT",
+                "Deposited " + amount + " into " + accountNumber
+        );
+
         return bankAccountRepository.save(account);
     }
 
@@ -115,6 +122,12 @@ public class BankAccountService {
         tx.setAccount(account);
 
         transactionRepository.save(tx);
+
+        auditService.log(
+                account.getUser().getEmail(),
+                "WITHDRAW",
+                "Withdraw " + amount + " from " + accountNumber
+        );
 
         return bankAccountRepository.save(account);
     }
@@ -170,6 +183,12 @@ public class BankAccountService {
 
         bankAccountRepository.save(sender);
         bankAccountRepository.save(receiver);
+
+        auditService.log(
+                sender.getUser().getEmail(),
+                "TRANSFER",
+                "Sent " + amount + " from " + fromAccount + " to " + toAccount
+        );
     }
 
     public List<TransactionResponseDTO> getAccountStatement(
