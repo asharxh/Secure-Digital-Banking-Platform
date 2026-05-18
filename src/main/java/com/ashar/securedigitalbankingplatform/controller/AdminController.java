@@ -64,4 +64,22 @@ public class AdminController {
     public List<FraudAlert> getFraudAlerts() {
         return fraudAlertRepository.findAll();
     }
+
+    @PostMapping("/accounts/{accountNumber}/freeze")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String freezeAccount(@PathVariable String accountNumber) {
+
+        bankAccountService.freezeAccount(accountNumber);
+
+        return "Account frozen successfully";
+    }
+
+    @PostMapping("/accounts/{accountNumber}/unfreeze")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String unfreezeAccount(@PathVariable String accountNumber) {
+
+        bankAccountService.unfreezeAccount(accountNumber);
+
+        return "Account unfreezed successfully";
+    }
 }

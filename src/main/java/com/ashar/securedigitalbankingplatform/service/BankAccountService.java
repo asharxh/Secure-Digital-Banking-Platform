@@ -239,6 +239,7 @@ public class BankAccountService {
                     AccountResponseDTO dto = new AccountResponseDTO();
                     dto.setAccountNumber(account.getAccountNumber());
                     dto.setBalance(account.getBalance());
+                    dto.setFrozen(account.isFrozen());
                     return dto;
                 })
                 .toList();
@@ -277,5 +278,23 @@ public class BankAccountService {
         if (account.isFrozen()) {
             throw new RuntimeException("Account is frozen. Transaction not allowed.");
         }
+    }
+
+    public void freezeAccount(String accountNumber) {
+
+        BankAccount account = bankAccountRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+
+        account.setFrozen(true);
+        bankAccountRepository.save(account);
+    }
+
+    public void unfreezeAccount(String accountNumber) {
+
+        BankAccount account = bankAccountRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+
+        account.setFrozen(false);
+        bankAccountRepository.save(account);
     }
 }

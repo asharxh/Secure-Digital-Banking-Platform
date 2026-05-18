@@ -8,4 +8,6 @@ public class AccountResponseDTO {
     private String accountNumber;
 
     private Double balance;
+
+    private boolean frozen;
 }
