@@ -3,6 +3,8 @@ package com.ashar.securedigitalbankingplatform.controller;
 import com.ashar.securedigitalbankingplatform.dto.UserResponseDTO;
 import com.ashar.securedigitalbankingplatform.dto.AccountResponseDTO;
 import com.ashar.securedigitalbankingplatform.dto.TransactionResponseDTO;
+import com.ashar.securedigitalbankingplatform.entity.FraudAlert;
+import com.ashar.securedigitalbankingplatform.repository.FraudAlertRepository;
 import com.ashar.securedigitalbankingplatform.service.AuditService;
 import com.ashar.securedigitalbankingplatform.service.UserService;
 import com.ashar.securedigitalbankingplatform.service.BankAccountService;
@@ -25,6 +27,7 @@ public class AdminController {
     private final BankAccountService bankAccountService;
     private final TransactionService transactionService;
     private final AuditService auditService;
+    private final FraudAlertRepository fraudAlertRepository;
 
     @GetMapping("/users")
     @PreAuthorize("hasRole('ADMIN')")
@@ -50,9 +53,15 @@ public class AdminController {
         return transactionService.getAllTransactions(pageable);
     }
 
-    @GetMapping("/auditlogs")
+    @GetMapping("/audit-logs")
     @PreAuthorize("hasRole('ADMIN')")
     public List<AuditLog> getAuditLogs() {
         return auditService.getAllLogs();
+    }
+
+    @GetMapping("/fraud-alerts")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<FraudAlert> getFraudAlerts() {
+        return fraudAlertRepository.findAll();
     }
 }
