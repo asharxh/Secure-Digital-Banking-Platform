@@ -4,6 +4,7 @@ import com.ashar.securedigitalbankingplatform.dto.*;
 import com.ashar.securedigitalbankingplatform.entity.Role;
 import com.ashar.securedigitalbankingplatform.entity.User;
 import com.ashar.securedigitalbankingplatform.exception.InvalidCredentialsException;
+import com.ashar.securedigitalbankingplatform.exception.UnauthorizedAccessException;
 import com.ashar.securedigitalbankingplatform.exception.UserNotFoundException;
 import com.ashar.securedigitalbankingplatform.repository.UserRepository;
 import com.ashar.securedigitalbankingplatform.security.JwtUtil;
@@ -124,17 +125,19 @@ public class UserService {
 
     public User getLoggedInUser() {
 
-        String email = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getName();
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null ||
+                !auth.isAuthenticated() ||
+                auth.getName().equals("anonymousUser")) {
+
+            throw new UnauthorizedAccessException("User not authenticated");
+        }
+
+        String email = auth.getName();
 
         return userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new UserNotFoundException(
-                                "User not found"
-                        )
-                );
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 
     public Page<UserResponseDTO> getAllUsers(Pageable pageable) {

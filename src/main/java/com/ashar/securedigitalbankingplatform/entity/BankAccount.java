@@ -16,22 +16,32 @@ public class BankAccount {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(name = "account_number", unique = true, nullable = false)
     private String accountNumber;
 
     private Double balance;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "account_type")
     private AccountType accountType;
 
+    @Column(name = "status")
     private String status;
+
+    @Column(name = "active", nullable = false)
+    private Boolean active = true;
+
+    @Column(name = "frozen", nullable = false)
+    private Boolean frozen = false;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @PrePersist
@@ -49,6 +59,11 @@ public class BankAccount {
         updatedAt = LocalDateTime.now();
     }
 
-    private boolean frozen = false;
-    private boolean active = true;
+    public boolean isFrozen() {
+        return Boolean.TRUE.equals(frozen);
+    }
+
+    public boolean isActive() {
+        return Boolean.TRUE.equals(active);
+    }
 }

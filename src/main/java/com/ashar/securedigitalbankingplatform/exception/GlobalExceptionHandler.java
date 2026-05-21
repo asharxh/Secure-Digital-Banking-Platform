@@ -150,4 +150,28 @@ public class GlobalExceptionHandler {
                         LocalDateTime.now()
                 ));
     }
+
+    @ExceptionHandler(OtpRequiredException.class)
+    public ResponseEntity<ErrorResponseDTO> handleOtp(OtpRequiredException ex) {
+
+        ErrorResponseDTO error = new ErrorResponseDTO(
+                ex.getMessage(),
+                428,
+                LocalDateTime.now()
+        );
+
+        return new ResponseEntity<>(error, HttpStatus.PRECONDITION_REQUIRED);
+    }
+
+    @ExceptionHandler(InvalidRequestException.class)
+    public ResponseEntity<ErrorResponseDTO> handleInvalidRequest(InvalidRequestException ex) {
+
+        ErrorResponseDTO error = new ErrorResponseDTO(
+                ex.getMessage(),
+                400,
+                LocalDateTime.now()
+        );
+
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
 }

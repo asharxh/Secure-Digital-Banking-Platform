@@ -7,9 +7,7 @@ import com.ashar.securedigitalbankingplatform.entity.AccountType;
 import com.ashar.securedigitalbankingplatform.entity.BankAccount;
 import com.ashar.securedigitalbankingplatform.entity.Transaction;
 import com.ashar.securedigitalbankingplatform.entity.User;
-import com.ashar.securedigitalbankingplatform.exception.AccountNotFoundException;
-import com.ashar.securedigitalbankingplatform.exception.InsufficientBalanceException;
-import com.ashar.securedigitalbankingplatform.exception.UnauthorizedAccessException;
+import com.ashar.securedigitalbankingplatform.exception.*;
 import com.ashar.securedigitalbankingplatform.repository.BankAccountRepository;
 import com.ashar.securedigitalbankingplatform.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
@@ -64,6 +62,9 @@ public class BankAccountService {
                 .findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
+        if (!"ACTIVE".equals(account.getStatus())) {
+            throw new UnauthorizedAccessException("Account is not active");
+        }
         if (!account.getUser().getId().equals(user.getId())) {
             throw new UnauthorizedAccessException("Access denied: Not your account");
         }
@@ -73,12 +74,21 @@ public class BankAccountService {
 
     public BankAccount deposit(String accountNumber, Double amount) {
 
+        System.out.println("DEPOSIT CALLED");
+        System.out.println("Account: " + accountNumber);
+        System.out.println("Amount: " + amount);
+        System.out.println("User: " + userService.getLoggedInUser().getEmail());
+
+        if (accountNumber == null || accountNumber.isBlank()) {
+            throw new InvalidRequestException("Account number is required");
+        }
+
         BankAccount account = getUserAccount(accountNumber);
 
         checkIfFrozen(account);
 
         if (amount <= 0) {
-            throw new IllegalArgumentException("Deposit amount must be positive");
+            throw new InvalidRequestException("Deposit amount must be positive");
         }
         fraudDetectionService.checkLargeTransaction(accountNumber, amount);
 
@@ -115,7 +125,7 @@ public class BankAccountService {
         }
 
         if (account.getBalance() < amount) {
-            throw new InsufficientBalanceException("Insufficient balance");
+            throw new InvalidRequestException("Withdraw amount must be positive");
         }
         fraudDetectionService.checkLargeTransaction(accountNumber, amount);
 
@@ -171,7 +181,7 @@ public class BankAccountService {
                     "Your OTP is: " + otp
             );
 
-            throw new RuntimeException("OTP sent to email. Verify to continue transfer.");
+            throw new OtpRequiredException("OTP sent to email. Verify before transfer.");
         }
 
         if (sender.getBalance() < amount) {

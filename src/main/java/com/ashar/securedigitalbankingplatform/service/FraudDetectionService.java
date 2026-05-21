@@ -34,7 +34,7 @@ public class FraudDetectionService {
 
             emailService.sendEmail(
                     email,
-                    "⚠ Suspicious Activity Alert",
+                    "Suspicious Activity Alert",
                     "Large transaction detected on account "
                             + accountNumber
                             + " Amount: "
