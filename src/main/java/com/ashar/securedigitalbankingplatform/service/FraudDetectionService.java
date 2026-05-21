@@ -12,6 +12,8 @@ import java.time.LocalDateTime;
 public class FraudDetectionService {
 
     private final FraudAlertRepository fraudAlertRepository;
+    private final EmailService emailService;
+    private final UserService userService;
 
     public void checkLargeTransaction(String accountNumber, Double amount) {
 
@@ -25,6 +27,19 @@ public class FraudDetectionService {
             alert.setTimestamp(LocalDateTime.now());
 
             fraudAlertRepository.save(alert);
+
+            String email =
+                    userService.getLoggedInUser()
+                            .getEmail();
+
+            emailService.sendEmail(
+                    email,
+                    "⚠ Suspicious Activity Alert",
+                    "Large transaction detected on account "
+                            + accountNumber
+                            + " Amount: "
+                            + amount
+            );
         }
     }
 }
