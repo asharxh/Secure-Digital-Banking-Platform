@@ -159,7 +159,20 @@ public class BankAccountService {
         if (amount <= 0) {
             throw new IllegalArgumentException("Amount must be positive");
         }
+        User user = userService.getLoggedInUser();
 
+        if (amount > 10000) {
+
+            String otp = otpService.generateOtp(user.getEmail());
+
+            emailService.sendEmail(
+                    user.getEmail(),
+                    "OTP for Transfer",
+                    "Your OTP is: " + otp
+            );
+
+            throw new RuntimeException("OTP sent to email. Verify to continue transfer.");
+        }
 
         if (sender.getBalance() < amount) {
             throw new InsufficientBalanceException("Insufficient balance");
