@@ -6,6 +6,7 @@ import com.ashar.securedigitalbankingplatform.dto.TransactionResponseDTO;
 import com.ashar.securedigitalbankingplatform.entity.BankAccount;
 import com.ashar.securedigitalbankingplatform.entity.User;
 import com.ashar.securedigitalbankingplatform.service.BankAccountService;
+import com.ashar.securedigitalbankingplatform.service.OtpService;
 import com.ashar.securedigitalbankingplatform.service.UserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -22,7 +23,7 @@ import java.util.List;
 public class BankAccountController {
 
     private final BankAccountService bankAccountService;
-
+    private final OtpService otpService;
     private final UserService userService;
 
     @PostMapping("/create")
@@ -64,6 +65,20 @@ public class BankAccountController {
         );
 
         return "Transfer Successful";
+    }
+    @PostMapping("/transfer/verify")
+    public String verifyTransfer(
+            @RequestParam String email,
+            @RequestParam String otp
+    ) {
+
+        boolean valid = otpService.verifyOtp(email, otp);
+
+        if (!valid) {
+            throw new RuntimeException("Invalid OTP");
+        }
+
+        return "OTP Verified. You can proceed with transfer.";
     }
 
     @GetMapping("/statement")
