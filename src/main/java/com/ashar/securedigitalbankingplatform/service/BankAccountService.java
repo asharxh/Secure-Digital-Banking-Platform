@@ -31,6 +31,8 @@ public class BankAccountService {
     private final UserService userService;
     private final AuditService auditService;
     private final FraudDetectionService fraudDetectionService;
+    private final EmailService emailService;
+    private final OtpService otpService;
 
     public AccountResponseDTO createAccount(
             User user,
@@ -157,6 +159,7 @@ public class BankAccountService {
         if (amount <= 0) {
             throw new IllegalArgumentException("Amount must be positive");
         }
+
 
         if (sender.getBalance() < amount) {
             throw new InsufficientBalanceException("Insufficient balance");
