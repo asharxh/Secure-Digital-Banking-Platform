@@ -32,49 +32,39 @@ public class UserControllerIntegrationTest {
     @Test
     void shouldRegisterUser() throws Exception {
 
-        String email = generateEmail();
-
         UserRequestDTO request = new UserRequestDTO();
         request.setName("Test User");
-        request.setEmail(email);
+        request.setEmail("testuser_" + System.currentTimeMillis() + "@gmail.com");
         request.setPassword("123456");
 
-        mockMvc.perform(
-                        post("/users/register")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request))
-                )
+        mockMvc.perform(post("/users/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
     }
 
     @Test
     void shouldLoginSuccessfully() throws Exception {
 
-        String email = generateEmail();
+        String email = "login_" + System.currentTimeMillis() + "@gmail.com";
 
-        // FIRST register user
         UserRequestDTO register = new UserRequestDTO();
-        register.setName("Test User");
+        register.setName("Login User");
         register.setEmail(email);
         register.setPassword("123456");
 
-        mockMvc.perform(
-                        post("/users/register")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(register))
-                )
+        mockMvc.perform(post("/users/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(register)))
                 .andExpect(status().isOk());
 
-        // THEN login with same user
         LoginRequestDTO login = new LoginRequestDTO();
         login.setEmail(email);
         login.setPassword("123456");
 
-        mockMvc.perform(
-                        post("/users/login")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(login))
-                )
+        mockMvc.perform(post("/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(login)))
                 .andExpect(status().isOk());
     }
 }
