@@ -134,4 +134,90 @@ public class BankAccountServiceTest {
                 () -> bankAccountService.withdraw("ACC123", 1000.0)
         );
     }
+
+    @Test
+    void shouldTransferSuccessfully() {
+
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("test@gmail.com");
+
+        BankAccount sender = new BankAccount();
+        sender.setAccountNumber("ACC1");
+        sender.setBalance(5000.0);
+        sender.setUser(user);
+        sender.setFrozen(false);
+        sender.setStatus("ACTIVE");
+
+        BankAccount receiver = new BankAccount();
+        receiver.setAccountNumber("ACC2");
+        receiver.setBalance(1000.0);
+        receiver.setFrozen(false);
+        receiver.setStatus("ACTIVE");
+
+        when(userService.getLoggedInUser())
+                .thenReturn(user);
+
+        when(bankAccountRepository.findByAccountNumber("ACC1"))
+                .thenReturn(Optional.of(sender));
+
+        when(bankAccountRepository.findByAccountNumber("ACC2"))
+                .thenReturn(Optional.of(receiver));
+
+        bankAccountService.transfer(
+                "ACC1",
+                "ACC2",
+                2000.0
+        );
+
+        assertEquals(3000.0, sender.getBalance());
+        assertEquals(3000.0, receiver.getBalance());
+
+        verify(transactionRepository, times(2))
+                .save(any());
+
+        verify(bankAccountRepository, times(1))
+                .save(sender);
+
+        verify(bankAccountRepository, times(1))
+                .save(receiver);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenTransferBalanceLow() {
+
+        User user = new User();
+        user.setId(1L);
+
+        BankAccount sender = new BankAccount();
+        sender.setAccountNumber("ACC1");
+        sender.setBalance(500.0);
+        sender.setUser(user);
+        sender.setFrozen(false);
+        sender.setStatus("ACTIVE");
+
+        BankAccount receiver = new BankAccount();
+        receiver.setAccountNumber("ACC2");
+        receiver.setBalance(1000.0);
+        receiver.setFrozen(false);
+        receiver.setStatus("ACTIVE");
+
+        when(userService.getLoggedInUser())
+                .thenReturn(user);
+
+        when(bankAccountRepository.findByAccountNumber("ACC1"))
+                .thenReturn(Optional.of(sender));
+
+        when(bankAccountRepository.findByAccountNumber("ACC2"))
+                .thenReturn(Optional.of(receiver));
+
+        assertThrows(
+                InsufficientBalanceException.class,
+                () -> bankAccountService.transfer(
+                        "ACC1",
+                        "ACC2",
+                        2000.0
+                )
+        );
+    }
 }
