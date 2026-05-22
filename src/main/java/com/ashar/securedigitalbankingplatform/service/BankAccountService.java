@@ -126,7 +126,7 @@ public class BankAccountService {
         }
 
         if (account.getBalance() < amount) {
-            throw new InvalidRequestException("Withdraw amount must be positive");
+            throw new InsufficientBalanceException("Insufficient balance");
         }
         fraudDetectionService.checkLargeTransaction(accountNumber, amount);
 
