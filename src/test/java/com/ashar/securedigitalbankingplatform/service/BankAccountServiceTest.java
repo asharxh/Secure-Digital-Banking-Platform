@@ -220,4 +220,56 @@ public class BankAccountServiceTest {
                 )
         );
     }
+
+    @Test
+    void shouldTriggerOtpForLargeTransfer() {
+
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("test@gmail.com");
+
+        BankAccount sender = new BankAccount();
+        sender.setAccountNumber("ACC1");
+        sender.setBalance(50000.0);
+        sender.setUser(user);
+        sender.setFrozen(false);
+        sender.setStatus("ACTIVE");
+
+        BankAccount receiver = new BankAccount();
+        receiver.setAccountNumber("ACC2");
+        receiver.setBalance(1000.0);
+        receiver.setFrozen(false);
+        receiver.setStatus("ACTIVE");
+
+        when(userService.getLoggedInUser())
+                .thenReturn(user);
+
+        when(bankAccountRepository.findByAccountNumber("ACC1"))
+                .thenReturn(Optional.of(sender));
+
+        when(bankAccountRepository.findByAccountNumber("ACC2"))
+                .thenReturn(Optional.of(receiver));
+
+        when(otpService.generateOtp(user.getEmail()))
+                .thenReturn("123456");
+
+        assertThrows(
+                RuntimeException.class,
+                () -> bankAccountService.transfer(
+                        "ACC1",
+                        "ACC2",
+                        15000.0
+                )
+        );
+
+        verify(otpService, times(1))
+                .generateOtp(user.getEmail());
+
+        verify(emailService, times(1))
+                .sendEmail(
+                        eq(user.getEmail()),
+                        anyString(),
+                        anyString()
+                );
+    }
 }
