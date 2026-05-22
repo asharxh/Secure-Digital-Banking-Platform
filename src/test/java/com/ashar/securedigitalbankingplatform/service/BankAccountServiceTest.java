@@ -1,0 +1,137 @@
+package com.ashar.securedigitalbankingplatform.service;
+
+import com.ashar.securedigitalbankingplatform.entity.BankAccount;
+import com.ashar.securedigitalbankingplatform.entity.Role;
+import com.ashar.securedigitalbankingplatform.entity.User;
+import com.ashar.securedigitalbankingplatform.exception.InsufficientBalanceException;
+import com.ashar.securedigitalbankingplatform.repository.BankAccountRepository;
+import com.ashar.securedigitalbankingplatform.repository.TransactionRepository;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+public class BankAccountServiceTest {
+
+    @Mock
+    private BankAccountRepository bankAccountRepository;
+
+    @Mock
+    private TransactionRepository transactionRepository;
+
+    @Mock
+    private UserService userService;
+
+    @Mock
+    private AuditService auditService;
+
+    @Mock
+    private FraudDetectionService fraudDetectionService;
+
+    @Mock
+    private EmailService emailService;
+
+    @Mock
+    private OtpService otpService;
+
+    @InjectMocks
+    private BankAccountService bankAccountService;
+
+    @Test
+    void shouldDepositSuccessfully() {
+
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("test@gmail.com");
+        user.setRole(Role.USER);
+
+        BankAccount account = new BankAccount();
+        account.setAccountNumber("ACC123");
+        account.setBalance(1000.0);
+        account.setUser(user);
+        account.setFrozen(false);
+        account.setStatus("ACTIVE");
+
+        when(userService.getLoggedInUser())
+                .thenReturn(user);
+
+        when(bankAccountRepository.findByAccountNumber("ACC123"))
+                .thenReturn(Optional.of(account));
+
+        when(bankAccountRepository.save(any(BankAccount.class)))
+                .thenReturn(account);
+
+        BankAccount result =
+                bankAccountService.deposit("ACC123", 500.0);
+
+        assertEquals(1500.0, result.getBalance());
+
+        verify(bankAccountRepository, times(1))
+                .save(account);
+
+        verify(transactionRepository, times(1))
+                .save(any());
+    }
+
+    @Test
+    void shouldWithdrawSuccessfully() {
+
+        User user = new User();
+        user.setId(1L);
+
+        BankAccount account = new BankAccount();
+        account.setAccountNumber("ACC123");
+        account.setBalance(5000.0);
+        account.setUser(user);
+        account.setFrozen(false);
+        account.setStatus("ACTIVE");
+
+        when(userService.getLoggedInUser())
+                .thenReturn(user);
+
+        when(bankAccountRepository.findByAccountNumber("ACC123"))
+                .thenReturn(Optional.of(account));
+
+        when(bankAccountRepository.save(any(BankAccount.class)))
+                .thenReturn(account);
+
+        BankAccount result =
+                bankAccountService.withdraw("ACC123", 1000.0);
+
+        assertEquals(4000.0, result.getBalance());
+    }
+
+    @Test
+    void shouldThrowInsufficientBalanceException() {
+
+        User user = new User();
+        user.setId(1L);
+
+        BankAccount account = new BankAccount();
+        account.setAccountNumber("ACC123");
+        account.setBalance(500.0);
+        account.setUser(user);
+        account.setFrozen(false);
+        account.setStatus("ACTIVE");
+
+        when(userService.getLoggedInUser())
+                .thenReturn(user);
+
+        when(bankAccountRepository.findByAccountNumber("ACC123"))
+                .thenReturn(Optional.of(account));
+
+        assertThrows(
+                InsufficientBalanceException.class,
+                () -> bankAccountService.withdraw("ACC123", 1000.0)
+        );
+    }
+}
