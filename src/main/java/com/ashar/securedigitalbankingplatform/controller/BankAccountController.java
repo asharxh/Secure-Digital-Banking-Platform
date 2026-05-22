@@ -78,7 +78,24 @@ public class BankAccountController {
             throw new RuntimeException("Invalid OTP");
         }
 
-        return "OTP Verified. You can proceed with transfer.";
+        var transfer =
+                otpService.getPendingTransfer(email);
+
+        if (transfer == null) {
+            throw new RuntimeException(
+                    "No pending transfer found"
+            );
+        }
+
+        bankAccountService.completeVerifiedTransfer(
+                transfer.getFromAccount(),
+                transfer.getToAccount(),
+                transfer.getAmount()
+        );
+
+        otpService.clearPendingTransfer(email);
+
+        return "Transfer completed successfully";
     }
 
     @GetMapping("/statement")

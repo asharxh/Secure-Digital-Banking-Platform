@@ -2,6 +2,7 @@ package com.ashar.securedigitalbankingplatform.service;
 
 import com.ashar.securedigitalbankingplatform.dto.AccountCreateRequestDTO;
 import com.ashar.securedigitalbankingplatform.dto.AccountResponseDTO;
+import com.ashar.securedigitalbankingplatform.dto.PendingTransferDTO;
 import com.ashar.securedigitalbankingplatform.dto.TransactionResponseDTO;
 import com.ashar.securedigitalbankingplatform.entity.AccountType;
 import com.ashar.securedigitalbankingplatform.entity.BankAccount;
@@ -175,13 +176,23 @@ public class BankAccountService {
 
             String otp = otpService.generateOtp(user.getEmail());
 
+            otpService.savePendingTransfer(
+                    user.getEmail(),
+                    new PendingTransferDTO(
+                            fromAccount,
+                            toAccount,
+                            amount
+                    )
+            );
             emailService.sendEmail(
                     user.getEmail(),
                     "OTP for Transfer",
                     "Your OTP is: " + otp
             );
 
-            throw new OtpRequiredException("OTP sent to email. Verify before transfer.");
+            throw new OtpRequiredException(
+                    "OTP sent to email. Verify before transfer."
+            );
         }
 
         if (sender.getBalance() < amount) {
@@ -322,5 +333,30 @@ public class BankAccountService {
 
         account.setFrozen(false);
         bankAccountRepository.save(account);
+    }
+
+    @Transactional
+    public void completeVerifiedTransfer(
+            String fromAccount,
+            String toAccount,
+            Double amount
+    ) {
+
+        BankAccount sender = getUserAccount(fromAccount);
+
+        BankAccount receiver = bankAccountRepository
+                .findByAccountNumber(toAccount)
+                .orElseThrow(() ->
+                        new AccountNotFoundException("Receiver not found"));
+
+        if (sender.getBalance() < amount) {
+            throw new InsufficientBalanceException("Insufficient balance");
+        }
+
+        sender.setBalance(sender.getBalance() - amount);
+        receiver.setBalance(receiver.getBalance() + amount);
+
+        bankAccountRepository.save(sender);
+        bankAccountRepository.save(receiver);
     }
 }
