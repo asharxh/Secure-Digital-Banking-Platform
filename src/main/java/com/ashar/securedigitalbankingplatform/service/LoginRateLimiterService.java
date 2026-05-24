@@ -13,8 +13,8 @@ public class LoginRateLimiterService {
     private final RedisTemplate<String, Object> redisTemplate;
 
     private static final String PREFIX = "LOGIN_FAIL:";
-    private static final int MAX_ATTEMPTS = 5;
-    private static final long BLOCK_TIME_MINUTES = 10;
+    private static final int MAX_ATTEMPTS = 3;
+    private static final long BLOCK_TIME_MINUTES = 5;
 
     public void checkBlocked(String email) {
 
