@@ -33,5 +33,12 @@ services:
       EMAIL_USERNAME: ${EMAIL_USERNAME}
       EMAIL_PASSWORD: ${EMAIL_PASSWORD}
 
+  redis:
+    image: redis:7
+    container_name: banking-redis
+
+    ports:
+      - "6379:6379"
+
 volumes:
   postgres_data:
