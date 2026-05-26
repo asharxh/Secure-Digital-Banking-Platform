@@ -44,5 +44,28 @@ services:
       REDIS_HOST: banking-redis
       REDIS_PORT: 6379
 
+  prometheus:
+    image: prom/prometheus
+    container_name: banking-prometheus
+
+    ports:
+      - "9090:9090"
+
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+
+    depends_on:
+      - app
+
+  grafana:
+    image: grafana/grafana
+    container_name: banking-grafana
+
+    ports:
+      - "3000:3000"
+
+    depends_on:
+      - prometheus
+
 volumes:
   postgres_data:
