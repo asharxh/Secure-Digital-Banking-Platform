@@ -94,39 +94,39 @@ public class UserService {
         String email = request.getEmail();
         loginRateLimiterService.checkBlocked(email);
 
-        try {
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() ->
-                            new InvalidCredentialsException("Invalid email or password")
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> {
+                    loginRateLimiterService.loginFailed(email);
+                    return new InvalidCredentialsException(
+                            "Invalid email or password"
                     );
+                });
 
-            boolean match = passwordEncoder.matches(
-                    request.getPassword(),
-                    user.getPassword()
-            );
+        boolean match = passwordEncoder.matches(
+                request.getPassword(),
+                user.getPassword()
+        );
 
-            if (!match) {
-                loginRateLimiterService.loginFailed(email);
-                throw new InvalidCredentialsException("Invalid email or password");
-            }
-
-            loginRateLimiterService.loginSuccess(email);
-
-            String token = jwtUtil.generateToken(
-                    user.getEmail(),
-                    user.getRole().name()
-            );
-
-            LoginResponseDTO response = new LoginResponseDTO();
-            response.setToken(token);
-            response.setMessage("Login successful");
-
-            return response;
-
-        } catch (RuntimeException ex) {
+        if (!match) {
             loginRateLimiterService.loginFailed(email);
-            throw ex;
+
+            throw new InvalidCredentialsException(
+                    "Invalid email or password"
+            );
         }
+
+        loginRateLimiterService.loginSuccess(email);
+
+        String token = jwtUtil.generateToken(
+                user.getEmail(),
+                user.getRole().name()
+        );
+
+        LoginResponseDTO response = new LoginResponseDTO();
+        response.setToken(token);
+        response.setMessage("Login successful");
+
+        return response;
     }
 
     public User getLoggedInUser() {

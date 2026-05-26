@@ -20,12 +20,16 @@ public class LoginRateLimiterService {
 
         Object value = redisTemplate.opsForValue().get(PREFIX + email);
 
-        if (value == null) return;
+        if (value == null) {
+            return;
+        }
 
-        int attempts = Integer.parseInt(value.toString());
+        int attempts = convertToInt(value);
 
         if (attempts >= MAX_ATTEMPTS) {
-            throw new RuntimeException("Too many login attempts. Try again after 10 minutes.");
+            throw new RuntimeException(
+                    "Too many login attempts. Try again after 5 minutes."
+            );
         }
     }
 
@@ -35,7 +39,9 @@ public class LoginRateLimiterService {
 
         Object value = redisTemplate.opsForValue().get(key);
 
-        int attempts = (value == null) ? 0 : Integer.parseInt(value.toString());
+        int attempts = (value == null)
+                ? 0
+                : convertToInt(value);
 
         attempts++;
 
@@ -47,6 +53,20 @@ public class LoginRateLimiterService {
     }
 
     public void loginSuccess(String email) {
+
         redisTemplate.delete(PREFIX + email);
+    }
+
+    private int convertToInt(Object value) {
+
+        if (value instanceof Integer) {
+            return (Integer) value;
+        }
+
+        if (value instanceof String) {
+            return Integer.parseInt((String) value);
+        }
+
+        return Integer.parseInt(value.toString().replace("\"", ""));
     }
 }
