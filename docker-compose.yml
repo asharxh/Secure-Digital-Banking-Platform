@@ -29,6 +29,7 @@ services:
     depends_on:
       - db
       - redis
+      - kafka
 
     ports:
       - "8080:8080"
@@ -43,6 +44,8 @@ services:
 
       REDIS_HOST: banking-redis
       REDIS_PORT: 6379
+
+      KAFKA_SERVER: kafka:9092
 
   prometheus:
     image: prom/prometheus
@@ -73,6 +76,7 @@ services:
 
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
 
     ports:
       - "2181:2181"
