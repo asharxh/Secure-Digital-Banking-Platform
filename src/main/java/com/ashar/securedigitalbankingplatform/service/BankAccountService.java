@@ -1,6 +1,7 @@
 package com.ashar.securedigitalbankingplatform.service;
 
 import com.ashar.securedigitalbankingplatform.dto.AccountCreateRequestDTO;
+import com.ashar.securedigitalbankingplatform.dto.TransferEventDTO;
 import com.ashar.securedigitalbankingplatform.dto.AccountResponseDTO;
 import com.ashar.securedigitalbankingplatform.dto.PendingTransferDTO;
 import com.ashar.securedigitalbankingplatform.dto.TransactionResponseDTO;
@@ -32,6 +33,7 @@ public class BankAccountService {
     private final FraudDetectionService fraudDetectionService;
     private final EmailService emailService;
     private final OtpService otpService;
+    private final KafkaProducerService kafkaProducerService;
 
     public AccountResponseDTO createAccount(
             User user,
@@ -358,5 +360,17 @@ public class BankAccountService {
 
         bankAccountRepository.save(sender);
         bankAccountRepository.save(receiver);
+
+        TransferEventDTO event =
+                TransferEventDTO.builder()
+                        .fromAccount(fromAccount)
+                        .toAccount(toAccount)
+                        .amount(amount)
+                        .userEmail(sender.getUser().getEmail())
+                        .status("SUCCESS")
+                        .timestamp(java.time.LocalDateTime.now().toString())
+                        .build();
+
+        kafkaProducerService.publishTransferEvent(event);
     }
 }
