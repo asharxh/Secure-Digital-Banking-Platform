@@ -2,6 +2,7 @@ package com.ashar.securedigitalbankingplatform.service;
 
 import com.ashar.securedigitalbankingplatform.entity.BankAccount;
 import com.ashar.securedigitalbankingplatform.entity.Role;
+import com.ashar.securedigitalbankingplatform.entity.TransactionCategory;
 import com.ashar.securedigitalbankingplatform.entity.User;
 import com.ashar.securedigitalbankingplatform.exception.InsufficientBalanceException;
 import com.ashar.securedigitalbankingplatform.repository.BankAccountRepository;
@@ -27,6 +28,9 @@ public class BankAccountServiceTest {
 
     @Mock
     private TransactionRepository transactionRepository;
+
+    @Mock
+    private TransactionCategorizationService categorizationService;
 
     @Mock
     private UserService userService;
@@ -70,6 +74,9 @@ public class BankAccountServiceTest {
         when(bankAccountRepository.save(any(BankAccount.class)))
                 .thenReturn(account);
 
+        when(categorizationService.categorize(anyString()))
+                .thenReturn(TransactionCategory.TRANSFER);
+
         BankAccount result =
                 bankAccountService.deposit("ACC123", 500.0);
 
@@ -103,6 +110,9 @@ public class BankAccountServiceTest {
 
         when(bankAccountRepository.save(any(BankAccount.class)))
                 .thenReturn(account);
+
+        when(categorizationService.categorize(anyString()))
+                .thenReturn(TransactionCategory.TRANSFER);
 
         BankAccount result =
                 bankAccountService.withdraw("ACC123", 1000.0);
@@ -163,6 +173,9 @@ public class BankAccountServiceTest {
 
         when(bankAccountRepository.findByAccountNumber("ACC2"))
                 .thenReturn(Optional.of(receiver));
+
+        when(categorizationService.categorize(anyString()))
+                .thenReturn(TransactionCategory.TRANSFER);
 
         bankAccountService.transfer(
                 "ACC1",

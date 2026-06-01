@@ -50,4 +50,7 @@ public class Transaction {
             timestamp = LocalDateTime.now();
         }
     }
+
+    @Enumerated(EnumType.STRING)
+    private TransactionCategory category;
 }

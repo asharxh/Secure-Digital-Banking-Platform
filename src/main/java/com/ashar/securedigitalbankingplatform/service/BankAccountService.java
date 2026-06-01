@@ -34,6 +34,7 @@ public class BankAccountService {
     private final EmailService emailService;
     private final OtpService otpService;
     private final KafkaProducerService kafkaProducerService;
+    private final TransactionCategorizationService categorizationService;
 
     public AccountResponseDTO createAccount(
             User user,
@@ -104,6 +105,7 @@ public class BankAccountService {
         tx.setReferenceNumber("TXN" + System.currentTimeMillis());
         tx.setReceiverAccount(accountNumber);
         tx.setDescription("Cash deposit");
+        tx.setCategory(categorizationService.categorize(tx.getDescription()));
         tx.setAccount(account);
 
         transactionRepository.save(tx);
@@ -141,6 +143,7 @@ public class BankAccountService {
         tx.setReferenceNumber("TXN" + System.currentTimeMillis());
         tx.setSenderAccount(accountNumber);
         tx.setDescription("Cash withdrawal");
+        tx.setCategory(categorizationService.categorize(tx.getDescription()));
         tx.setAccount(account);
 
         transactionRepository.save(tx);
@@ -215,6 +218,7 @@ public class BankAccountService {
         out.setSenderAccount(fromAccount);
         out.setReceiverAccount(toAccount);
         out.setDescription("Money sent");
+        out.setCategory(categorizationService.categorize(out.getDescription()));
         out.setAccount(sender);
 
         Transaction in = new Transaction();
@@ -225,6 +229,7 @@ public class BankAccountService {
         in.setSenderAccount(fromAccount);
         in.setReceiverAccount(toAccount);
         in.setDescription("Money received");
+        in.setCategory(categorizationService.categorize(in.getDescription()));
         in.setAccount(receiver);
 
         transactionRepository.save(out);
