@@ -1,5 +1,5 @@
 ## Secure Digital Banking Platform
-Secure digital banking platform solve real-world risks like unauthorized logins, and unsafe money transfers by enforcing strict
+- Secure digital banking platform solve real-world risks like unauthorized logins, and unsafe money transfers by enforcing strict
 verification before any transaction is completed.
 ---
 
